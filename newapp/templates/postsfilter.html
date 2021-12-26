@@ -1,0 +1,49 @@
+{% extends 'flatpages/default.html' %}
+
+{% load censor_filters %}
+
+{% block title %}
+Posts list
+{% endblock title %}
+
+{% block content %}
+    <form method="GET">
+        <br>
+        <br>
+        {{ filter.form }}
+        <input type="submit" value="Найти">
+        <br>
+        <br>
+    </form>
+    <h1>Отобранные новости</h1>
+    {% if news %}
+        <table>
+            <tr>
+                <td>
+                    Заголовок
+                </td>
+                <td>
+                    Дата публикации
+                </td>
+                <td>
+                    Текст статьи
+                </td>
+            </tr>
+        {% for new in filter.qs %}
+            <tr>
+                <td>
+                    {{ new.title|censor }}
+                </td>
+                <td>
+                    {{ new.dateCreation }}
+                </td>
+                <td>
+                    {{ new.text|censor }}
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <h2>Новостей нет!</h2>
+    {% endif %}
+{% endblock content %}

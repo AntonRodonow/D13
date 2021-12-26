@@ -1,0 +1,60 @@
+{% extends 'flatpages/default.html' %}
+
+{% block title %}
+Post list
+{% endblock title %}
+
+{% block content %}
+<h2>Вы действительно хотите удалить данную новость/статью?</h2>
+<table>
+    <thead>
+        <th>
+            Автор
+        </th>
+        <th>
+            Категория новости
+        </th>
+        <th>
+            Дата создания
+        </th>
+        <th>
+            Заголовок
+        </th>
+        <th>
+            Текст новости
+        </th>
+        <th>
+            Рейтинг новости
+        </th>
+        <th>
+            Рейтинг автора
+        </th>
+    </thead>
+    <tr>
+        <td>
+            {{ post.author.authorUser }}
+        </td>
+        <td>
+            {{ post.categoryType }}
+        </td>
+        <td>
+            {{ post.dateCreation }}
+        </td>
+        <td>
+            {{ post.title }}
+        </td>
+        <td>
+            {{ post.text }}
+        </td>
+        <td>
+            {{ post.rating }}
+        </td>
+        <td>
+            {{ post.author.ratingAuthor }}
+        </td>
+    </tr>
+</table>
+<form method="POST">
+    {% csrf_token %}
+    <input type="submit" value="Подтвердить"></form>
+{% endblock content %}
