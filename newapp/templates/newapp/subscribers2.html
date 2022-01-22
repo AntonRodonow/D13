@@ -1,0 +1,11 @@
+{% extends 'flatpages/default.html' %}
+
+{% block title %}
+Subscribers
+{% endblock title %}
+
+{% block content %}
+<br>
+    <h3>Вы подписаны на категорию новостей {{ request.Category.name }}</h3>
+<br>
+{% endblock content %}
