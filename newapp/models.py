@@ -4,8 +4,8 @@ from django.db.models import Sum
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
-from allauth.account.forms import SignupForm # тест
-from django.contrib.auth.models import Group # тест
+from allauth.account.forms import SignupForm
+from django.contrib.auth.models import Group
 
 class Author(models.Model):
     authorUser = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -23,12 +23,16 @@ class Author(models.Model):
         self.ratingAuthor = pRat * 3 + cRat
         self.save()
 
+    def __str__(self):
+        return f'{self.authorUser.username}'
+
 
 class Category(models.Model):
     name = models.CharField(max_length=64, unique=True)
+    subscribers = models.ManyToManyField(User)              # добавил 31.12.21 ManyToManyField поменял на ForeignKey
 
     def __str__(self):
-        return f'{self.name.title()}'
+        return f'{self.name}'   # убрать .title()
 
 
 class Post(models.Model):
@@ -95,7 +99,7 @@ class BaseRegisterForm(UserCreationForm):
     first_name = forms.CharField(label = "Имя")
     last_name = forms.CharField(label = "Фамилия")
 
-    def save(self):            # тест
+    def save(self):
         user = super(BaseRegisterForm, self).save()
         common_group = Group.objects.get(name='common')
         common_group.user_set.add(user)
@@ -109,5 +113,3 @@ class BaseRegisterForm(UserCreationForm):
                   "email",
                   "password1",
                   "password2", )
-
-

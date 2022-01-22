@@ -1,7 +1,8 @@
 from django.forms import ModelForm
-from .models import Post
+from .models import Post, Category
 from allauth.account.forms import SignupForm
 from django.contrib.auth.models import Group
+from django import forms
 
 
 # Создаём модельную форму
@@ -18,3 +19,8 @@ class CommonSignupForm(SignupForm):  # переопределил этот кл�
         common_group = Group.objects.get(name='common')
         common_group.user_set.add(user)
         return user
+
+
+class CategorySubscribers(forms.Form):
+    category = forms.ModelChoiceField(queryset=Category.objects.all())  # проверить работу подписки на несколько категорий ModelMultipleChoiceField
+    # success_url = 'successsubscribers/'    # проверка 02.01.21
