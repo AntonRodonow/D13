@@ -8,6 +8,8 @@
 <body>
     <h2>«Здравствуй, {{request.user.username}}. Новая статья в твоём любимом разделе!»</h2>
     <h2>{{ subscriber.title }}</h2>
+    <h2>«Нажмите чтобы пенрейти»</h2>
+    <h2><a href="{% url 'take_order' order.id %}">Почитать статью!</a></h2>
     <p> {{ subscriber.title|truncatechars:50 }} </p>
 </body>
 </html>

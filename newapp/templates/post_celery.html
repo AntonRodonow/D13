@@ -1,0 +1,18 @@
+{% load censor_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <p>Привет, {{ user }}! </p>
+    <p>{{ post.message_subscriber }}</p>
+    <br>
+    <h4>Название: <a href="{{ post.get_absolute_url }}"> {{ post.title|censor }} </a></h4>
+    <p>Автор: {{ post.author }}</p>
+    <p>Дата: {{ post.dateCreation|date:'d M Y H:i' }}</p>
+    <p>{{ post.text|truncatechars:50|censor }}<a href="{{ post.get_absolute_url }}"> >>> </a></p>
+</body>
+</html>

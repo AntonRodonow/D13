@@ -1,0 +1,54 @@
+2022-03-18 13:00:06,095 :: ERROR -- C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\utils\log.py // (<class 'socket.gaierror'>, gaierror(11001, 'getaddrinfo failed'), <traceback object at 0x000001D95D23DDC0>) :Internal Server Error: /news/48/edit/
+Traceback (most recent call last):
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\core\handlers\exception.py", line 47, in inner
+    response = get_response(request)
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\core\handlers\base.py", line 181, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\views\generic\base.py", line 69, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\contrib\auth\mixins.py", line 104, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\contrib\auth\mixins.py", line 71, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\views\generic\base.py", line 101, in dispatch
+    return handler(request, *args, **kwargs)
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\views\generic\edit.py", line 196, in post
+    return super().post(request, *args, **kwargs)
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\views\generic\edit.py", line 144, in post
+    return self.form_valid(form)
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\views\generic\edit.py", line 127, in form_valid
+    self.object = form.save()
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\forms\models.py", line 466, in save
+    self.instance.save()
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\db\models\base.py", line 743, in save
+    self.save_base(using=using, force_insert=force_insert,
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\db\models\base.py", line 791, in save_base
+    post_save.send(
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\dispatch\dispatcher.py", line 170, in send
+    return [
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\dispatch\dispatcher.py", line 171, in <listcomp>
+    (receiver, receiver(signal=self, sender=sender, **named))
+  File "C:\Learning_Python\D13\D13 Loging\skilfactorydjango\newapp\signals.py", line 33, in notify_managers_post
+    send_mail(subject=subject,
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\core\mail\__init__.py", line 61, in send_mail
+    return mail.send()
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\core\mail\message.py", line 284, in send
+    return self.get_connection(fail_silently).send_messages([self])
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\core\mail\backends\smtp.py", line 102, in send_messages
+    new_conn_created = self.open()
+  File "C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\core\mail\backends\smtp.py", line 62, in open
+    self.connection = self.connection_class(self.host, self.port, **connection_params)
+  File "C:\Program Files\Python38\lib\smtplib.py", line 1043, in __init__
+    SMTP.__init__(self, host, port, local_hostname, timeout,
+  File "C:\Program Files\Python38\lib\smtplib.py", line 255, in __init__
+    (code, msg) = self.connect(host, port)
+  File "C:\Program Files\Python38\lib\smtplib.py", line 339, in connect
+    self.sock = self._get_socket(host, port, self.timeout)
+  File "C:\Program Files\Python38\lib\smtplib.py", line 1049, in _get_socket
+    new_socket = socket.create_connection((host, port), timeout,
+  File "C:\Program Files\Python38\lib\socket.py", line 787, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+  File "C:\Program Files\Python38\lib\socket.py", line 918, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno 11001] getaddrinfo failed
+2022-03-18 13:00:06,107 :: ERROR -- C:\Users\Anton\AppData\Roaming\Python\Python38\site-packages\django\core\servers\basehttp.py // None :"POST /news/48/edit/ HTTP/1.1" 500 172690

@@ -12,6 +12,18 @@ from django.views.generic.edit import FormView
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.views import View
 from django.template.loader import render_to_string
+from django.core.mail import mail_managers
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from .tasks import hello, weekly_digest_celery, notify_subscribers
+
+#celery test
+
+def index (request):
+    hello.delay()
+    return render(request, 'index.html')
+#end celery test
+
 
 
 class PostList(ListView):
@@ -40,8 +52,71 @@ class PostDetailView(DetailView):               # работает дженер�
     queryset = Post.objects.all()
     context_object_name = 'new'
 
-class PostAddView(PermissionRequiredMixin, CreateView):              # работает дженерик создания новостей
-    permission_required = ('newapp.add_post',) # тест
+@receiver(post_save, sender=Post)
+def notify_managers_post(sender, instance, created, **kwargs):
+    count = 0
+    user_aut = instance.author
+    print(f"{user_aut}")
+    print('Test 2')
+
+    if created:
+        subject = f'Подоспела новая публикация {instance.title} от {instance.author}'
+    else:
+        subject = f'Была актуализирована публикация {instance.title} от {instance.author}'
+    all_email_to = ['anrodion81222@yandex.ru',]
+    for category in instance.postCategory.all():
+        print(f'{category}')
+        for user in category.subscribers.all():
+            user.email
+            all_email_to.append(user.email)
+
+    print(f'{all_email_to}')
+
+    send_mail(subject=subject,
+              message=instance.text[:40],
+              from_email='anrodion81222@yandex.ru',
+              recipient_list=all_email_to)
+
+# celery and redis
+@receiver(post_save, sender=Post)
+def notify_managers_post(sender, instance, created, **kwargs):
+    user_aut = instance.author
+    print(f"{user_aut}")
+
+    if created:
+        subject = f'Подоспела новая публикация {instance.title} от {instance.author}'
+    else:
+        subject = f'Была актуализирована публикация {instance.title} от {instance.author}'
+    all_email_to = ['anrodion81222@yandex.ru',]
+    all_user_names_to = []
+    for category in instance.postCategory.all():
+        print(f'{category}')
+        for user in category.subscribers.all():
+            # user.email #это лишнее!!!
+            all_email_to.append(user.email)
+            all_user_names_to.append(user.username)
+            sub_name = user.username
+            sub_email = user.email
+            title = instance.title
+            pub_time = instance.dateCreation.strftime("%d %m %Y")
+            pk = instance.pk
+            # post = Post.objects.get(id=pk) # лишнее
+            category = Post.objects.get(id=pk).postCategory.get().name
+
+            notify_subscribers.delay(sub_name, sub_email, title, category, pub_time, pk) # отправлена задача celery
+
+    print(f'{all_email_to}')
+
+    send_mail(subject=subject,
+              message=instance.text[:40],
+              from_email='anrodion81222@yandex.ru',
+              recipient_list=all_email_to)
+
+
+class PostAddView(PermissionRequiredMixin, CreateView):              # дженерик создания новостей
+    model = Post
+    print(f'Test 1')
+    permission_required = ('newapp.add_post',)
     template_name = 'newapp/post_add.html'
     form_class = PostForm
 
@@ -49,7 +124,6 @@ class PostAddView(PermissionRequiredMixin, CreateView):              # рабо�
         context = super().get_context_data(**kwargs)
         context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
         return context
-
 
 class PostListFilter(ListView):
     model = Post
@@ -66,7 +140,7 @@ class PostListFilter(ListView):
 
 class PostUpdateView(PermissionRequiredMixin, LoginRequiredMixin, UpdateView):     # дженерик для редактирования новостей
     permission_required = ('newapp.change_post',)                   # ограничение прав на изм. новостей
-    template_name = 'newapp/post_add.html'                          # (без TemplateView работает как часы)
+    template_name = 'newapp/post_add.html'
     form_class = PostForm                                           # LoginRequiredMixin запрещ доступ для не зарегистр. польз.
 
     # метод get_object мы используем вместо queryset, чтобы получить информацию об объекте, который мы собираемся редактировать
@@ -94,6 +168,7 @@ def upgrade_me(request):
         authors_group.user_set.add(user)
     return redirect('/news/')
 
+
 # в админ панели создали данные ограничения,
 # если пользователь не входит в нужную группу, ему летает страница с ошибкой 403 (страница недоступна)
 # Существует определенное соглашение для именования разрешений: <app>.<action>_<model>,
@@ -103,53 +178,19 @@ def upgrade_me(request):
 #     permission_required = ('newapp.add_post',)
 
 
-# class ChangeNews(PermissionRequiredMixin, PostUpdateView):    # мы сделали не отдельным классом а в уже существующем
-#     permission_required = ('newapp.change_post',)
-
-class CategoryView(FormView, View, Category):  # обавил View, Category, Post вероятно не нужны!!!!!
+class CategoryView(FormView, View, Category):  # добавил View, Category, Post вероятно не нужны!!!!!
     form_class = CategorySubscribers
     template_name = 'newapp/subscribers.html'
-    success_url = '/news/'   # скорректировать позже!!!!!!!!!!!!
+    success_url = '/news/'
 
     def form_valid(self, form):
         user = self.request.user
-        category_id = self.request.Post['category']
+        category_id = self.request.POST['category']
         category = Category.objects.get(pk=category_id)
-        category.subscribers_set.add(user)
-        category.save()
+        category.subscribers.add(user)
+        # category.save() # это не нужно
+        print(f'{user} {category.subscribers.all()}')
         return super().form_valid(form)
-
-    def post(self, request, *args, **kwargs):
-        # user = request.user
-        # email = request.POST['email']
-        # category = request.POST['category']
-        # subscriber = Post
-        subscriber = Post(   # self.request. добавил ///// Category вместо Post
-            text=request.POST['text'],
-            title=request.POST['title'],
-        )
-        subscriber.save()
-
-        html_content = render_to_string('newapp/subscriber_created.html',
-                                        {'subscriber': subscriber},
-                                        )
-
-        msg = EmailMultiAlternatives(
-            subject=f'{subscriber.title}',
-            body=f'{subscriber.text}',
-            from_email='anrodion8122@yandex.ru',
-            to=['anrodion8122@yandex.ru', 'anrodion812@gmail.com', request.user.email]
-        )
-
-        msg.attach_alternative(html_content, 'Спасибо за подписку!')
-        msg.send()
-
-        # send_mail(
-        #     subject=f'{subscriber.title}',   # тема письма
-        #     message=subscriber.text,
-        #     recipient_list=['anrodion8122@yandex.ru',]
-        # )
-        return redirect('subscribers:make_subscriber')
 
 
 # Если пользователь подписан на какую-либо категорию,
@@ -162,43 +203,55 @@ class CategoryView(FormView, View, Category):  # обавил View, Category, Po
 # «Здравствуй, username. Новая статья в твоём любимом разделе!».
 
 # текст и заголов находится Post.text (models), в html - ххх.text|truncatechars:50|censor, заголовок - new.title|censor,
+
+
+
+
+
+# @login_required   # еще один способ на заметку
+# def add_subscribe(request, pk):
 #
+#     user = request.user
+#
+#     # category_object = PostCategory.objects.get(category=pk)
+#     id_u = user.id
+#     category = Category.objects.get(id=pk)
+#     # category.subscribers.add(user)
+#     print(f'''PK =  "{pk}", USER:  "{user}", user_id: "{id_u}", category: "{category}"''')
+#
+#     qs = category.subscribers.all()
+#     print('QS= ', qs)
+#     print('ПОДПИСАН НА КАТЕГОРИЮ ? ', qs.filter(username=user).exists())
+#     # print(category_object)
+#     # print(Category.objects.all().filter(postcategory=category))
+#     # .Post.category.category.subscribers.objects.all().user.username
+#     if not qs.filter(username=user).exists():
+#         category.subscribers.add(user)
+#         print('Пользователь', user, 'подписан на категорию:', category)
+#     else:
+#         category.subscribers.remove(user)
+#         print('Пользователь', user, 'отписался от категории:', category)
+#
+#     # print('ПОДПИСЧИКИ: ', category.subscribers.all())
+#
+#     try:
+#         email = category.subscribers.get(id=id_u).email
+#         print(f'''email: "{email}" Можно отправить уведомление''')
+#         send_mail(
+#             subject=f'News Portal: подписка на обновления категории {category}',
+#             message=f'«{request.user}», вы подписались на обновление категории: «{category}».',
+#             from_email='apractikant@yandex.ru',
+#             recipient_list=[f'{email}', ],
+#         )
+#
+#     except Exception as n:
+#         print('nnnnnnnnnnnnnnnnnnnnn')
+#     # Category.objects.get(pk=pk).subscribers.add(request.user)
+#     # print(category.subscribers.all())
+#     return redirect('/')
 
-class CategoryView2(FormView, View, Category):  # обавил View, Category, Post вероятно не нужны!!!!!
-    template_name = 'newapp/subscribers2.html'
-    success_url = '/news/'   # скорректировать позже!!!!!!!!!!!!
-
-    def form_valid(self, form):
-        user = self.request.user
-        category_id = self.request.Post['category']
-        category = Category.objects.get(pk=category_id)
-        category.subscribers_set.add(user)
-        category.save()
-        return super().form_valid(form)
-
-    def post(self, request, *args, **kwargs):
-        # user = request.user
-        # email = request.POST['email']
-        # category = request.POST['category']
-        # subscriber = Post
-        subscriber = Post(   # self.request. добавил ///// Category вместо Post
-            text=request.POST['text'],
-            title=request.POST['title'],
-        )
-        subscriber.save()
-
-        html_content = render_to_string('newapp/subscriber_created.html',
-                                        {'subscriber': subscriber},
-                                        )
-
-        msg = EmailMultiAlternatives(
-            subject=f'{subscriber.title}',
-            body=f'{subscriber.text}',
-            from_email='anrodion8122@yandex.ru',
-            to=['anrodion8122@yandex.ru', 'anrodion812@gmail.com', request.user.email]
-        )
-
-        msg.attach_alternative(html_content, 'Спасибо за подписку!')
-        msg.send()
-
-        return redirect('subscribers:make_subscriber')
+#celery and redis task
+def weekly_celery_redis (request):
+    weekly_digest_celery.delay()
+    print('Complete')
+#end celery and redis task

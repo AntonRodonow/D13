@@ -7,6 +7,7 @@ from django import forms
 from allauth.account.forms import SignupForm
 from django.contrib.auth.models import Group
 
+
 class Author(models.Model):
     authorUser = models.OneToOneField(User, on_delete=models.CASCADE)
     ratingAuthor = models.SmallIntegerField(default=0)
@@ -29,14 +30,15 @@ class Author(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=64, unique=True)
-    subscribers = models.ManyToManyField(User)              # добавил 31.12.21 ManyToManyField поменял на ForeignKey
+    subscribers = models.ManyToManyField(User)
 
     def __str__(self):
-        return f'{self.name}'   # убрать .title()
+        return f'{self.name}'
 
 
 class Post(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
+
 
     NEWS = 'NW'
     ARTICLE = 'AR'
@@ -66,7 +68,14 @@ class Post(models.Model):
         return f'{self.title}'
 
     def get_absolute_url(self):
-        return f'/news/{self.id}'
+        return f'http://127.0.0.1:8000/news/{self.id}'
+        # return f'/news/{self.id}' - закоментировал 13.02.2022
+
+    def get_category(self):
+        return f'{self.postCategory}'
+
+    def message_subscriber(self):
+        return f'Новая статья - "{self.title}" в разделе "{self.postCategory.first()}".'
 
 
 class PostCategory(models.Model):
@@ -113,3 +122,20 @@ class BaseRegisterForm(UserCreationForm):
                   "email",
                   "password1",
                   "password2", )
+
+# class SendMassages(models.Model):#добавил 02.02.2022
+#     client_name = models.CharField(max_length=200)
+#     message = models.TextField()
+#
+#     def __str__(self):
+#         return f'{self.client_name}: {self.message}'
+
+# class Appointment(models.Model): # test1
+#     client_name = models.CharField(
+#         max_length=200
+#     )
+#     message = models.TextField()
+# ​
+#     def __str__(self):
+#         return f'{self.client_name}: {self.message}'
+

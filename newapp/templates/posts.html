@@ -81,8 +81,15 @@ Post list
     <button> <a href="add/">Добавить новость</a></a> </button>
     <br>
     <br>
+    {% if request.user.is_authenticated %}
+            <button> <a href="upgrade/">Стать автором</a></a> </button>
+    {% endif %}
     <br>
     <br>
-    <button> <a href="add/newapp/logout/">Выйти</a> </button>
+    <br>
+    {% if request.user.is_authenticated %}
+        <button> <a href="add/newapp/logout/">Выйти</a> </button>
+    {% endif %}
+
 
 {% endblock content %}

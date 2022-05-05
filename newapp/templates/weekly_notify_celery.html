@@ -1,0 +1,39 @@
+{% load censor_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly_notify</title>
+</head>
+<body>
+    <p>Привет! </p>
+    <p>Еженедельная подборка публикаций в выбранной категории "{{ category }}".</p>
+    <br>
+
+    <br>
+    {% if notify %}
+        <table>
+        {% for post in notify %}
+            <tr>
+                <td>
+                    <a href="{{ post.get_absolute_url }}">{{ post.title|censor }} </a>
+                </td>
+                <td>
+                    {{ post.text|truncatechars:50|censor }}
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <h2>Новостей и публикаций нет!</h2>
+    {% endif %}
+<br>
+<hr>
+<br>
+<br>
+<p><h4>До встречи на <a href="http://127.0.0.1:8000/news/">News Portal</a> и хорошего дня!</h4></p>
+<br>
+<br>
+</body>
+</html>

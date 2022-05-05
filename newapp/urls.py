@@ -1,6 +1,6 @@
-from django.urls import path
+from django.urls import path, include
 from .views import PostList, PostDetailView, PostAddView, PostListFilter, PostUpdateView, PostDeleteView, \
-    BaseRegisterView, upgrade_me, CategoryView, CategoryView2
+    BaseRegisterView, upgrade_me, CategoryView, index #, add_subscribe
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
@@ -17,6 +17,7 @@ urlpatterns = [
     path('upgrade/', upgrade_me, name='upgrade'),
 
     path('/news/login/', LoginView.as_view(template_name='newapp/login.html'), name='login'),
+    # path('subscribers/', add_subscribe, name='add_subscribe'),
     path('subscribers/', CategoryView.as_view(template_name='newapp/subscribers.html'), name='subscribers'),
-    path('subscribers2/', CategoryView2.as_view(template_name='newapp/subscribers2.html'), name='subscribers2'),
-]
+    path('index/', index)#test celery
+    ]
